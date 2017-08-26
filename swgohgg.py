@@ -71,6 +71,8 @@ if __name__ == '__main__':
     result = session.get("http://swgoh.gg/", headers = dict(referer = "http://swgoh.gg/"))
     tree = html.fromstring(result.content)
     character_names = tree.xpath("//li[@class='media list-group-item p-0 character']//h5/text()")
+    character_factions = tree.xpath("//li[@class='media list-group-item p-0 character']//small/text()")
+    character_infos = dict(zip(character_names, character_factions))
 
     # get the list of members who have public profiles in the guild
     result = session.get("http://swgoh.gg/g/13864/storming-to-isengard/", headers = dict(referer = "http://swgoh.gg/g/13864/storming-to-isengard/"))
@@ -124,5 +126,25 @@ if __name__ == '__main__':
                 f.write("Locked,")
 
         f.write("\n")
+
+    f.write("\n\n\n\n")
+
+    # faction table
+    f.write("Character,Factions,\n")
+    for character_name, character_factions in character_infos.items():
+        encoded = character_name.encode('utf-8')
+        f.write(encoded + ",")
+
+        # split the factions
+        encoded_character_factions = character_factions.encode('utf-8')
+        factions = encoded_character_factions.split('\xb7')
+        for faction in factions:
+            faction = faction.strip('\xc2')
+            faction = faction.strip(' ')
+            f.write(faction.encode('utf-8') + " ")
+        
+        f.write("\n")
+
+    f.write("\n")
 
     f.close()
