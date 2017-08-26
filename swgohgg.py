@@ -21,6 +21,52 @@ class PlayerInfo:
 
         self.characters[character_info.name] = character_info
 
+def process_faction_element(faction_html_element):
+
+    # the faction element is a <small> tag, but sometimes it can have an embedded <span> tag
+    # so we have to collect both pieces
+    small_text = faction_html_element.xpath("./text()")
+    span_text = faction_html_element.xpath("./span/text()")
+    total_elements = []
+    if len(small_text) != 0 and len(span_text) != 0:
+        # information in both, combine and return
+        small_text = small_text[0].encode('utf-8')
+        small_text_factions = small_text.split('\xb7')
+        for text in small_text_factions:
+            text = text.strip('\xc2')
+            text = text.strip(' ')
+            if len(text) > 0:
+                total_elements.append(text)
+
+        span_text = span_text[0].encode('utf-8')
+        span_text_factions = span_text.split('\xb7')
+        for text in span_text_factions:
+            text = text.strip('\xc2')
+            text = text.strip(' ')
+            if len(text) > 0:
+                total_elements.append(text)
+
+    elif len(small_text) != 0:
+        # it's only the text in the small tag
+        small_text = small_text[0].encode('utf-8')
+        small_text_factions = small_text.split('\xb7')
+        for text in small_text_factions:
+            text = text.strip('\xc2')
+            text = text.strip(' ')
+            if len(text) > 0:
+                total_elements.append(text)
+    else:
+        # it's only the text in the span tag
+        span_text = span_text[0].encode('utf-8')
+        span_text_factions = span_text.split('\xb7')
+        for text in span_text_factions:
+            text = text.strip('\xc2')
+            text = text.strip(' ')
+            if len(text) > 0:
+                total_elements.append(text)
+
+    return total_elements
+
 def process_character_element(character_html_element):
 
     # first determine if the character is unlocked or not
@@ -71,7 +117,7 @@ if __name__ == '__main__':
     result = session.get("http://swgoh.gg/", headers = dict(referer = "http://swgoh.gg/"))
     tree = html.fromstring(result.content)
     character_names = tree.xpath("//li[@class='media list-group-item p-0 character']//h5/text()")
-    character_factions = tree.xpath("//li[@class='media list-group-item p-0 character']//small/text()")
+    character_factions = tree.xpath("//li[@class='media list-group-item p-0 character']//small")
     character_infos = dict(zip(character_names, character_factions))
 
     # get the list of members who have public profiles in the guild
@@ -135,12 +181,9 @@ if __name__ == '__main__':
         encoded = character_name.encode('utf-8')
         f.write(encoded + ",")
 
-        # split the factions
-        encoded_character_factions = character_factions.encode('utf-8')
-        factions = encoded_character_factions.split('\xb7')
+        # process the factions
+        factions = process_faction_element(character_factions)
         for faction in factions:
-            faction = faction.strip('\xc2')
-            faction = faction.strip(' ')
             f.write(faction.encode('utf-8') + " ")
         
         f.write("\n")
