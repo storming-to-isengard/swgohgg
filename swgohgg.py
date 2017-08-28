@@ -173,7 +173,9 @@ if __name__ == '__main__':
 
         f.write("\n")
 
-    f.write("\n\n\n\n")
+    f.close()
+
+    f = open('faction_data.csv', 'w')
 
     # faction table
     f.write("Character,Factions,\n")
@@ -184,7 +186,7 @@ if __name__ == '__main__':
         # process the factions
         factions = process_faction_element(character_factions)
         for faction in factions:
-            f.write(faction.encode('utf-8') + " ")
+            f.write(faction.encode('utf-8') + "_")
         
         f.write("\n")
 
